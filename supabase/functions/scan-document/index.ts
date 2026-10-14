@@ -100,12 +100,10 @@ Deno.serve(async (req) => {
   const today = new Date().toISOString().slice(0, 10);
   let response;
   try {
-    response = await anthropic.beta.messages.create({
-      model: 'claude-opus-5-5',
+    // Claude Haiku 5.5: il modello più economico (circa 40 volte meno di Opus), adatto all'estrazione di dati.
+    response = await anthropic.messages.create({
+      model: 'claude-haiku-5-5',
       max_tokens: 16000,
-      // Se un filtro di sicurezza rifiuta per errore, l'API riprova da sola con il modello consigliato.
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
       output_config: { effort: 'medium', format: { type: 'json_schema', schema: SCHEMA } },
       system: SYSTEM,
       messages: [

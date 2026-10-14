@@ -76,8 +76,9 @@ Gli abbonamenti (RevenueCat) richiedono una *development build*: `npx eas-cli@la
    ```
 5. Copia `.env.example` in `.env` e inserisci URL e *anon key* (Project Settings → API).
 
-Costo IA: ogni scansione usa Claude Opus 5.5 (circa 2-3 centesimi). Per ridurre i costi si può
-cambiare il modello in `supabase/functions/scan-document/index.ts`.
+Costo IA: ogni scansione usa Claude Haiku 5.5, il modello più economico (circa 0,1 centesimi a scansione,
+cioè ~1 € ogni 1.000 scansioni). Se servisse più precisione sui documenti difficili si può passare a
+`claude-opus-5-5` (circa 2-3 centesimi) in `supabase/functions/scan-document/index.ts`.
 
 ### 2. Account sviluppatore
 - Apple Developer Program: 99 $/anno — [developer.apple.com](https://developer.apple.com/programs/)
