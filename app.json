@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Casa in Ordine",
+    "slug": "casa-in-ordine",
+    "scheme": "casainordine",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "it.casainordine.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "it.casainordine.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Casa in Ordine usa le tue foto per leggere bollette e documenti che scegli tu.",
+          "cameraPermission": "Casa in Ordine usa la fotocamera per fotografare bollette e documenti."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#3b5bdb"
+        }
+      ]
+    ]
+  }
+}

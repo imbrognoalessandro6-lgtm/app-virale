@@ -1,45 +1,113 @@
-# 🍝 Che Pasta Sei? — quiz virale
+# 🏡 Casa in Ordine
 
-Un quiz di personalità di 7 domande: alla fine l'utente scopre "che pasta è" e lo condivide.
-È un sito statico (HTML/CSS/JS, niente server, niente database): ospitarlo su GitHub Pages è **gratis**.
+**I soldi e le scadenze della famiglia, in un'unica app condivisa.**
+App per iPhone e Android (React Native + Expo) con cassa familiare, scadenze lette dall'IA e abbonamento Premium.
 
-## Perché può diventare virale
+| Oggi | Movimenti | Scadenze | Analisi |
+|---|---|---|---|
+| ![Oggi](docs/screenshots/oggi.png) | ![Movimenti](docs/screenshots/movimenti.png) | ![Scadenze](docs/screenshots/scadenze.png) | ![Analisi](docs/screenshots/analisi.png) |
 
-- **Immagine pronta per le storie** (1080×1920): un tocco e si condivide su Instagram/TikTok/WhatsApp.
-- **Link "Sfida un amico"** (`?amico=carbonara`): chi apre il link vede il risultato dell'amico e vuole confrontarsi.
-- **Un tema che scatena discussioni** ("panna nella carbonara?"), ottimo per i commenti.
-- Quiz brevissimo (meno di un minuto), pensato per il telefono.
+Strategia, analisi di mercato e piano di lancio: [`docs/STRATEGIA.md`](docs/STRATEGIA.md).
 
-## Come guadagna
+## Funzioni
 
-Tutto si configura in [`config.js`](config.js), senza toccare il resto del codice:
+- **Oggi**: saldo complessivo, totale entrate e uscite, pulsante *Registra*, traguardo di risparmio con
+  barra di avanzamento e quota mensile necessaria, prossime scadenze, ultimi movimenti.
+- **Registra**: entrata/uscita, importo, categoria, utente che registra, data, note.
+- **Movimenti**: filtri per utente, categoria, tipo, dal giorno A al giorno B; totali filtrati; export **CSV** (Premium).
+- **Scadenze**: foto di bollette, multe, bollo, F24, lettere → l'IA estrae importo e scadenza e spiega
+  "cosa dice" e "cosa fare"; promemoria 3 giorni prima e il giorno stesso; "Segna pagata" registra l'uscita in cassa.
+- **Analisi**: saldo del mese, variazione rispetto al mese precedente, grafico entrate/uscite degli ultimi 6 mesi,
+  grafico a ciambella delle spese per categoria.
+- **Impostazioni**: obiettivo di risparmio condiviso (nome, importo, data), categorie (aggiungi, attiva/disattiva),
+  membri della famiglia, codice invito, abbonamento.
+- **Famiglia condivisa**: più persone nello stesso gruppo con un codice di 6 caratteri, aggiornamenti in tempo reale.
 
-| Fonte | Cosa inserire | Note |
+## Modello di guadagno
+
+| | Gratis | Premium (3,99 €/mese o 24,99 €/anno, 7 giorni di prova) |
 |---|---|---|
-| Google AdSense | `adsenseClient`, `adSlots` | Serve approvazione: di solito richiede un dominio tuo e un po' di traffico. |
-| Amazon Affiliazione | `amazonTag` | Ogni risultato mostra un prodotto a tema con il tuo link. Iscrizione: programma-affiliazione.amazon.it |
-| Donazioni | `supportUrl` | Ko-fi, Buy Me a Coffee o PayPal.me |
+| Cassa, analisi, obiettivo, famiglia | ✅ | ✅ |
+| Scansioni IA | 3 al mese | Illimitate |
+| Export CSV | — | ✅ |
 
-Finché un campo è vuoto, lo spazio corrispondente resta nascosto.
+Un abbonamento vale per **tutta la famiglia**. Le soglie si cambiano in `src/lib/config.ts`
+(e `FREE_SCANS_PER_MONTH` nella Edge Function).
 
-## Pubblicazione (gratis)
+## Architettura
 
-1. Unisci questo branch in `main`.
-2. Su GitHub: **Settings → Pages → Source: GitHub Actions**.
-3. A ogni push su `main` il workflow `.github/workflows/pages.yml` pubblica il sito su
-   `https://<tuo-utente>.github.io/app-virale/`.
-4. (Consigliato) Collega un dominio tuo: aiuta per l'approvazione AdSense.
+```
+src/app/            schermate (Expo Router): (tabs)/ index, movimenti, scadenze, analisi, impostazioni
+                    + onboarding, registra, scadenza, premium (modali)
+src/lib/            store, backend (locale / Supabase), notifiche, CSV, abbonamenti, formati
+src/components/     UI e grafici (react-native-svg)
+supabase/           schema SQL con Row Level Security + Edge Functions
+  functions/scan-document      lettura documenti con Claude (vision + output strutturato)
+  functions/revenuecat-webhook attiva Premium per il gruppo
+```
 
-## Personalizzare
+- **Senza configurazione** l'app parte in *modalità locale*: dati solo sul telefono, niente IA né inviti.
+  Utile per provarla subito.
+- **Con Supabase**: login anonimo automatico (nessuna registrazione), dati condivisi e protetti per gruppo.
 
-- Domande e risultati: [`data.js`](data.js). Puoi cambiare tema (che città sei, che personaggio sei…) modificando solo quel file.
-- Grafica: [`style.css`](style.css).
+## Provarla subito
 
-## Aspettative realistiche
+```bash
+npm install
+npx expo start        # poi apri con l'app "Expo Go" sul telefono (QR code), oppure premi "w" per il browser
+```
 
-"Passivo" vale solo dopo il lancio: il traffico non arriva da solo. Il modo più efficace è
-pubblicare video brevi (TikTok/Reels/Shorts) che mostrano il quiz e i risultati, con il link in bio.
-Con annunci e affiliazioni i guadagni crescono col traffico: poche visite = pochi centesimi;
-un quiz che diventa virale può rendere molto di più, ma non è garantito.
+Gli abbonamenti (RevenueCat) richiedono una *development build*: `npx eas-cli@latest build --profile development`.
 
-Prova in locale: `python3 -m http.server` e apri http://localhost:8000
+## Messa in produzione, passo per passo
+
+### 1. Supabase (database + IA) — gratis per iniziare
+1. Crea un progetto su [supabase.com](https://supabase.com).
+2. **Authentication → Sign In / Providers → Anonymous sign-ins**: attiva.
+3. **SQL Editor**: incolla ed esegui `supabase/migrations/0001_init.sql`.
+4. Installa la CLI e collega il progetto:
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref <ID-PROGETTO>
+   npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-...      # da console.anthropic.com
+   npx supabase functions deploy scan-document
+   npx supabase secrets set REVENUECAT_WEBHOOK_SECRET=<una-password-lunga-a-caso>
+   npx supabase functions deploy revenuecat-webhook --no-verify-jwt
+   ```
+5. Copia `.env.example` in `.env` e inserisci URL e *anon key* (Project Settings → API).
+
+Costo IA: ogni scansione usa Claude Opus 5.5 (circa 2-3 centesimi). Per ridurre i costi si può
+cambiare il modello in `supabase/functions/scan-document/index.ts`.
+
+### 2. Account sviluppatore
+- Apple Developer Program: 99 $/anno — [developer.apple.com](https://developer.apple.com/programs/)
+- Google Play Console: 25 $ una tantum — [play.google.com/console](https://play.google.com/console)
+
+### 3. Abbonamenti (RevenueCat — ha un piano gratuito per iniziare, verifica le condizioni attuali)
+1. Crea i prodotti negli store: `premium_mensile` (3,99 €) e `premium_annuale` (24,99 € con 7 giorni di prova).
+2. Su [revenuecat.com](https://www.revenuecat.com): crea il progetto, collega App Store e Play Store,
+   crea l'entitlement **`premium`** e un'offering *default* con i pacchetti *Monthly* e *Annual*.
+3. Copia le chiavi pubbliche iOS/Android nel `.env`.
+4. **Integrations → Webhooks**: URL `https://<ID-PROGETTO>.supabase.co/functions/v1/revenuecat-webhook`,
+   *Authorization header* = il valore di `REVENUECAT_WEBHOOK_SECRET`.
+
+### 4. Build e pubblicazione (senza Mac, con EAS)
+```bash
+npx eas-cli@latest login
+npx eas-cli@latest build --platform all --profile production
+npx eas-cli@latest submit --platform ios
+npx eas-cli@latest submit --platform android
+```
+Prima della pubblicazione:
+- sostituisci le icone in `assets/` (1024×1024) e, se vuoi, il nome in `app.json`
+  (`it.casainordine.app` è l'identificativo: cambialo con un dominio tuo);
+- pubblica una **privacy policy** (obbligatoria: l'app tratta dati finanziari e foto di documenti) e indicala negli store;
+- nelle schede degli store dichiara: dati finanziari, foto (solo su azione dell'utente), identificativo utente.
+
+## Comandi utili
+
+```bash
+npm run typecheck     # controllo dei tipi
+npm run lint          # controllo qualità
+npx expo export --platform web   # build web di prova
+```
